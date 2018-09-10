@@ -42,7 +42,32 @@ try
 
         foreach ($history_tables as $history_table) {
                 foreach ($items as $idx => $item) {
-                        $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*24*60*60 LIMIT 7500;", $item['itemid'], $item['history']);
+                        // Newer versions of Zabbix store duration in descriptive format (ie 1w or 2d [1 week or 2 days respectively]) instead of in integer days. Need to convert that ourselves here.
+                        if (is_numeric($item['history']))
+                           $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*24*60*60 LIMIT 7500;", $item['itemid'], $item['history']);
+                        else {
+                           $history_parts = sscanf($item['history'], "%d%s");
+
+                           switch ($history_parts[1]) { // should contain something like 1w, 1d etc
+                              case 'w':
+                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*7*24*60*60 LIMIT 7500; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
+                                 break;
+                              case 'd':
+                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*24*60*60 LIMIT 7500; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
+                                 break;
+                              case 'h':
+                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*60*60 LIMIT 7500; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
+                                 break;
+                              case 'm':
+                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*60 LIMIT 7500; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
+                                 break;
+                              case 's':
+                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s LIMIT 7500; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
+                                 break;
+                              default:
+                                 $queries[] = sprintf("-- Item %s - History was %s - Did not know how to break that down into parts! --", $item['itemid'], $item['history']);
+                              }
+                           }
                 }
         }
 
@@ -158,7 +183,7 @@ try
         $mail = new PHPMailer(true);
         try {
                 //Server settings
-    $mail->SMTPDebug = 2;                                 // Enable verbose debug output
+    $mail->SMTPDebug = 0;                                 // Enable verbose debug output
     $mail->isSMTP();                                      // Set mailer to use SMTP
     $mail->Host = $mail_server;                                                                  // Specify main and backup SMTP servers
 
