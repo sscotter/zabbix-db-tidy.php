@@ -124,7 +124,7 @@ try
 
         // Delete orphaned maintenance data
         $queries[] = "DELETE FROM maintenances_groups WHERE maintenanceid NOT IN (SELECT maintenanceid FROM maintenances);";
-        $queries[] = "DELETE FROM maintenances_groups WHERE groupid NOT IN (SELECT groupid FROM groups);";
+        $queries[] = "DELETE FROM maintenances_groups WHERE groupid NOT IN (SELECT groupid FROM hosts_groups);";
         $queries[] = "DELETE FROM maintenances_hosts WHERE maintenanceid NOT IN (SELECT maintenanceid FROM maintenances);";
         $queries[] = "DELETE FROM maintenances_hosts WHERE hostid NOT IN (SELECT hostid FROM hosts);";
         $queries[] = "DELETE FROM maintenances_windows WHERE maintenanceid NOT IN (SELECT maintenanceid FROM maintenances);";
@@ -137,7 +137,7 @@ try
         $queries[] = "DELETE FROM media WHERE NOT userid IN (SELECT userid FROM users);";
         $queries[] = "DELETE FROM media WHERE NOT mediatypeid IN (SELECT mediatypeid FROM media_type);";
         $queries[] = "DELETE FROM rights WHERE NOT groupid IN (SELECT usrgrpid FROM usrgrp);";
-        $queries[] = "DELETE FROM rights WHERE NOT id IN (SELECT groupid FROM groups);";
+        //$queries[] = "DELETE FROM rights WHERE NOT id IN (SELECT groupid FROM groups);"; // There is no groups table. Unsure how rights table is tied to other tables. Unlikely to be a huge amount of data in rights to purge. Disabling
         $queries[] = "DELETE FROM sessions WHERE NOT userid IN (SELECT userid FROM users);";
 
         // Screens
