@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . __FILE__ . '.inc';
+require_once __FILE__ . '.inc';
 require_once __DIR__ . '/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -109,7 +109,7 @@ try {
 
 
 	foreach ($queries as $idx => $query) {
-		mylogger(sprintf("[%s] (%s / %s = %s) %s", date('Y-m-d H:i:s'), $idx, count($queries), round($idx/count($queries)*100, 2), $query));
+		mylogger(sprintf("[%s] (%s / %s = %s%) %s", date('Y-m-d H:i:s'), $idx, count($queries), round($idx/count($queries)*100, 2), $query));
 		try {
 			// Repeat this loop while the rows deleted equals the limit
 			do {
