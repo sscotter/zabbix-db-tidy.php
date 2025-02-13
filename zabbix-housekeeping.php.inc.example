@@ -1,5 +1,6 @@
 <?php
 $lock_file = __DIR__ . "/zabbix-housekeeping.php.lock";
+$log_directory = __DIR__ . "/logs";
 
 $mysql_hostname = 'localhost';
 $mysql_username = 'zabbix';

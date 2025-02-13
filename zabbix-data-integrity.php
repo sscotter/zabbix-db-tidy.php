@@ -147,7 +147,7 @@ try {
 
 	$lines[] = sprintf("[%s] Total Row Deleted: %s", date('Y-m-d H:i:s'), $total_affected_rows);
 
-	file_put_contents('/tmp/zabbix-data-integrity--' . date('Y-m-d--His') . '.log.bzip', bzcompress(implode(PHP_EOL, $lines)));
+	file_put_contents($log_directory . '/zabbix-data-integrity--' . date('Y-m-d--His') . '.log.bzip', bzcompress(implode(PHP_EOL, $lines)));
 
         $mail = new PHPMailer(true);
         try {

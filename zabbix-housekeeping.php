@@ -109,7 +109,7 @@ try {
 
 
 	foreach ($queries as $idx => $query) {
-		mylogger(sprintf("[%s] (%s / %s = %s%) %s", date('Y-m-d H:i:s'), $idx, count($queries), round($idx/count($queries)*100, 2), $query));
+		mylogger(sprintf("[%s] (%s / %s = %s%%) %s", date('Y-m-d H:i:s'), $idx, count($queries), round($idx/count($queries)*100, 2), $query));
 		try {
 			// Repeat this loop while the rows deleted equals the limit
 			do {
@@ -129,7 +129,7 @@ try {
 
 	$lines[] = sprintf("[%s] Total Row Deleted: %s", date('Y-m-d H:i:s'), $total_affected_rows);
 
-	file_put_contents('/tmp/zabbix-housekeeping--' . date('Y-m-d--His') . '.log.bzip', bzcompress(implode(PHP_EOL, $lines)));
+	file_put_contents($log_directory . '/zabbix-housekeeping--' . date('Y-m-d--His') . '.log.bzip', bzcompress(implode(PHP_EOL, $lines)));
 
         $mail = new PHPMailer(true);
         try {
