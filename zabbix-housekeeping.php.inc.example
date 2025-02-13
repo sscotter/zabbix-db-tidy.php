@@ -1,0 +1,14 @@
+<?php
+$lock_file = __DIR__ . "/zabbix-housekeeping.php.lock";
+
+$mysql_hostname = 'localhost';
+$mysql_username = 'zabbix';
+$mysql_password = 'password';
+$mysql_database = 'zabbixdb';
+
+$mail_server = 'localhost';
+$mail_from_addr = 'zabbix-data-integrity@example.com';
+$mail_from_name = 'zabbix-data-integrity on EXAMPLE';
+
+$mail_to_addr = 'firstname.lastname@example.com';
+$mail_to_name = 'Firstname Lastname';
