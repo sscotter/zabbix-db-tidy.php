@@ -105,106 +105,6 @@ try {
                 }
         }
 
-        // https://github.com/burner1024/zabbix-sql/blob/master/delete-unused-data.sql
-
-	/*
-	The following SQL is more about data integrity than housekeeping.
-        Useful in it's own right, but slow and time consuming and doesn't necessarily need doing as often as housekeeping.... Maybe move this to a seperate script and run it on a different schedule?
-
-        $queries[] = "DELETE FROM history WHERE itemid NOT IN (SELECT itemid FROM items WHERE status='0');";
-        $queries[] = "DELETE FROM history_uint WHERE itemid NOT IN (SELECT itemid FROM items WHERE status='0');";
-        $queries[] = "DELETE FROM history_str WHERE itemid NOT IN (SELECT itemid FROM items WHERE status='0');";
-        $queries[] = "DELETE FROM history_text WHERE itemid NOT IN (SELECT itemid FROM items WHERE status='0');";
-        $queries[] = "DELETE FROM history_log WHERE itemid NOT IN (SELECT itemid FROM items WHERE status='0');";
-
-        $queries[] = "DELETE FROM trends WHERE itemid NOT IN (SELECT itemid FROM items WHERE status='0');";
-        $queries[] = "DELETE FROM trends_uint WHERE itemid NOT IN (SELECT itemid FROM items WHERE status='0');";
-
-        // https://github.com/mattiasgeniar/zabbix-orphaned-data-cleanup/blob/master/cleanup.sql
-
-        // Delete orphaned alerts entries
-        $queries[] = "DELETE FROM alerts WHERE NOT actionid IN (SELECT actionid FROM actions);";
-        $queries[] = "DELETE FROM alerts WHERE NOT eventid IN (SELECT eventid FROM events);";
-        $queries[] = "DELETE FROM alerts WHERE NOT userid IN (SELECT userid FROM users);";
-        $queries[] = "DELETE FROM alerts WHERE NOT mediatypeid IN (SELECT mediatypeid FROM media_type);";
-
-        // Delete orphaned application entries that no longer map back to a host
-        $queries[] = "DELETE FROM applications WHERE NOT hostid IN (SELECT hostid FROM hosts);";
-
-        // Delete orphaned auditlog details (such as logins)
-        $queries[] = "DELETE FROM auditlog_details WHERE NOT auditid IN (SELECT auditid FROM auditlog);";
-        $queries[] = "DELETE FROM auditlog WHERE NOT userid IN (SELECT userid FROM users);";
-
-        // Delete orphaned conditions
-        $queries[] = "DELETE FROM conditions WHERE NOT actionid IN (SELECT actionid FROM actions);";
-
-        // Delete orphaned functions
-        $queries[] = "DELETE FROM functions WHERE NOT itemid IN (SELECT itemid FROM items);";
-        $queries[] = "DELETE FROM functions WHERE NOT triggerid IN (SELECT triggerid FROM triggers);";
-
-        // Delete orphaned graph items
-        $queries[] = "DELETE FROM graphs_items WHERE NOT graphid IN (SELECT graphid FROM graphs);";
-        $queries[] = "DELETE FROM graphs_items WHERE NOT itemid IN (SELECT itemid FROM items);";
-
-        // Delete orphaned host macro's
-        $queries[] = "DELETE FROM hostmacro WHERE NOT hostid IN (SELECT hostid FROM hosts);";
-
-        // Delete orphaned item data
-        $queries[] = "DELETE FROM items WHERE hostid NOT IN (SELECT hostid FROM hosts);";
-        $queries[] = "DELETE FROM items_applications WHERE applicationid NOT IN (SELECT applicationid FROM applications);";
-        $queries[] = "DELETE FROM items_applications WHERE itemid NOT IN (SELECT itemid FROM items);";
-
-        // Delete orphaned HTTP check data
-        $queries[] = "DELETE FROM httpstep WHERE NOT httptestid IN (SELECT httptestid FROM httptest);";
-        $queries[] = "DELETE FROM httpstepitem WHERE NOT httpstepid IN (SELECT httpstepid FROM httpstep);";
-        $queries[] = "DELETE FROM httpstepitem WHERE NOT itemid IN (SELECT itemid FROM items);";
-        $queries[] = "DELETE FROM httptest WHERE applicationid NOT IN (SELECT applicationid FROM applications);";
-
-        // Delete orphaned maintenance data
-        $queries[] = "DELETE FROM maintenances_groups WHERE maintenanceid NOT IN (SELECT maintenanceid FROM maintenances);";
-        $queries[] = "DELETE FROM maintenances_groups WHERE groupid NOT IN (SELECT groupid FROM hosts_groups);";
-        $queries[] = "DELETE FROM maintenances_hosts WHERE maintenanceid NOT IN (SELECT maintenanceid FROM maintenances);";
-        $queries[] = "DELETE FROM maintenances_hosts WHERE hostid NOT IN (SELECT hostid FROM hosts);";
-        $queries[] = "DELETE FROM maintenances_windows WHERE maintenanceid NOT IN (SELECT maintenanceid FROM maintenances);";
-        $queries[] = "DELETE FROM maintenances_windows WHERE timeperiodid NOT IN (SELECT timeperiodid FROM timeperiods);";
-
-        // Delete orphaned mappings
-        $queries[] = "DELETE FROM mappings WHERE NOT valuemapid IN (SELECT valuemapid FROM valuemaps);";
-
-        // Delete orphaned media items
-        $queries[] = "DELETE FROM media WHERE NOT userid IN (SELECT userid FROM users);";
-        $queries[] = "DELETE FROM media WHERE NOT mediatypeid IN (SELECT mediatypeid FROM media_type);";
-        $queries[] = "DELETE FROM rights WHERE NOT groupid IN (SELECT usrgrpid FROM usrgrp);";
-        //$queries[] = "DELETE FROM rights WHERE NOT id IN (SELECT groupid FROM groups);"; // There is no groups table. Unsure how rights table is tied to other tables. Unlikely to be a huge amount of data in rights to purge. Disabling
-        $queries[] = "DELETE FROM sessions WHERE NOT userid IN (SELECT userid FROM users);";
-
-        // Screens
-        $queries[] = "DELETE FROM screens_items WHERE screenid NOT IN (SELECT screenid FROM screens);";
-
-        // Events & triggers
-        $queries[] = "DELETE FROM trigger_depends WHERE triggerid_down NOT IN (SELECT triggerid FROM triggers);";
-        $queries[] = "DELETE FROM trigger_depends WHERE triggerid_up NOT IN (SELECT triggerid FROM triggers);";
-
-        // Delete records in the history/trends table where items that no longer exist
-        $queries[] = "DELETE FROM history WHERE itemid NOT IN (SELECT itemid FROM items);";
-        $queries[] = "DELETE FROM history_uint WHERE itemid NOT IN (SELECT itemid FROM items);";
-        $queries[] = "DELETE FROM history_log WHERE itemid NOT IN (SELECT itemid FROM items);";
-        $queries[] = "DELETE FROM history_str WHERE itemid NOT IN (SELECT itemid FROM items);";
-        $queries[] = "DELETE FROM history_text WHERE itemid NOT IN (SELECT itemid FROM items);";
-
-        $queries[] = "DELETE FROM trends WHERE itemid NOT IN (SELECT itemid FROM items);";
-        $queries[] = "DELETE FROM trends_uint WHERE itemid NOT IN (SELECT itemid FROM items);";
-
-        // Delete records in the events table where triggers/items no longer exist
-        $queries[] = "DELETE FROM events WHERE source = 0 AND object = 0 AND objectid NOT IN (SELECT triggerid FROM triggers);";
-        $queries[] = "DELETE FROM events WHERE source = 3 AND object = 0 AND objectid NOT IN (SELECT triggerid FROM triggers);";
-        $queries[] = "DELETE FROM events WHERE source = 3 AND object = 4 AND objectid NOT IN (SELECT itemid FROM items);";
-
-        // Delete all orphaned acknowledge entries
-        $queries[] = "DELETE FROM acknowledges WHERE eventid NOT IN (SELECT eventid FROM events);";
-        $queries[] = "DELETE FROM acknowledges WHERE userid NOT IN (SELECT userid FROM users);";
-	*/
-
         $total_affected_rows = 0;
 
 
@@ -229,7 +129,7 @@ try {
 
 	$lines[] = sprintf("[%s] Total Row Deleted: %s", date('Y-m-d H:i:s'), $total_affected_rows);
 
-	file_put_contents('/tmp/zabbix-db-tidy--' . date('Y-m-d--His') . '.log', implode(PHP_EOL, $lines));
+	file_put_contents('/tmp/zabbix-housekeeping--' . date('Y-m-d--His') . '.log.bzip', bzcompress(implode(PHP_EOL, $lines)));
 
         $mail = new PHPMailer(true);
         try {

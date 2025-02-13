@@ -24,90 +24,9 @@ try {
         $i = new mysqli($mysql_hostname, $mysql_username, $mysql_password, $mysql_database);
 
         $items = array();
-        $history_tables = array('history', 'history_log', 'history_str', 'history_text', 'history_uint');
-	$trend_tables = array('trends', 'trends_uint');
-
-	//
-	// Get Histroy and Trend duration for all the items
-	//
-        if ($res = $i->query("SELECT * FROM items;") ) {
-                mylogger(sprintf("[%s] Success. Rows returned %s", date('Y-m-d H:i:s'), $i->affected_rows));
-                if ($res->num_rows > 0) {
-                        while ($row = $res->fetch_object()) {
-                                $items[] = array('itemid' => $row->itemid, 'history' => $row->history, 'trends' => $row->trends);
-                        }
-                }
-                $res->close();
-        } else {
-                mylogger(sprintf("[%s] Error occured: %s", date('Y-m-d H:i:s'), $i->error));
-                die(); // should end the while anyway, but just in case
-        }
-
-        foreach ($history_tables as $history_table) {
-                foreach ($items as $idx => $item) {
-                        // Newer versions of Zabbix store duration in descriptive format (ie 1w or 2d [1 week or 2 days respectively]) instead of in integer days. Need to convert that ourselves here.
-                        if (is_numeric($item['history']))
-                           $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*24*60*60 LIMIT $limit;", $item['itemid'], $item['history']);
-                        else {
-                           $history_parts = sscanf($item['history'], "%d%s");
-
-                           switch ($history_parts[1]) { // should contain something like 1w, 1d etc
-                              case 'w':
-                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*7*24*60*60 LIMIT $limit; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
-                                 break;
-                              case 'd':
-                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*24*60*60 LIMIT $limit; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
-                                 break;
-                              case 'h':
-                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*60*60 LIMIT $limit; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
-                                 break;
-                              case 'm':
-                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*60 LIMIT $limit; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
-                                 break;
-                              case 's':
-                                 $queries[] = sprintf("DELETE FROM $history_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s LIMIT $limit; -- History was %s --", $item['itemid'], $history_parts[0], $item['history']);
-                                 break;
-                              default:
-                                 $queries[] = sprintf("-- Item %s - History was %s - Did not know how to break that down into parts! --", $item['itemid'], $item['history']);
-                              }
-                           }
-                }
-        }
-
-        foreach ($trend_tables as $trend_table) {
-                foreach ($items as $idx => $item) {
-                        // Newer versions of Zabbix store duration in descriptive format (ie 1w or 2d [1 week or 2 days respectively]) instead of in integer days. Need to convert that ourselves here.
-                        if (is_numeric($item['trends']))
-                           $queries[] = sprintf("DELETE FROM $trend_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*24*60*60 LIMIT $limit;", $item['itemid'], $item['trends']);
-                        else {
-                           $trend_parts = sscanf($item['trends'], "%d%s");
-
-                           switch ($trend_parts[1]) { // should contain something like 1w, 1d etc
-                              case 'w':
-                                 $queries[] = sprintf("DELETE FROM $trend_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*7*24*60*60 LIMIT $limit; -- Trend was %s --", $item['itemid'], $trend_parts[0], $item['trends']);
-                                 break;
-                              case 'd':
-                                 $queries[] = sprintf("DELETE FROM $trend_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*24*60*60 LIMIT $limit; -- Trend was %s --", $item['itemid'], $trend_parts[0], $item['trends']);
-                                 break;
-                              case 'h':
-                                 $queries[] = sprintf("DELETE FROM $trend_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*60*60 LIMIT $limit; -- Trend was %s --", $item['itemid'], $trend_parts[0], $item['trends']);
-                                 break;
-                              case 'm':
-                                 $queries[] = sprintf("DELETE FROM $trend_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s*60 LIMIT $limit; -- Trend was %s --", $item['itemid'], $trend_parts[0], $item['trends']);
-                                 break;
-                              case 's':
-                                 $queries[] = sprintf("DELETE FROM $trend_table WHERE itemid=%s and clock<UNIX_TIMESTAMP()-%s LIMIT $limit; -- Trend was %s --", $item['itemid'], $trend_parts[0], $item['trends']);
-                                 break;
-                              default:
-                                 $queries[] = sprintf("-- Item %s - Trend was %s - Did not know how to break that down into parts! --", $item['itemid'], $item['trends']);
-                              }
-                           }
-                }
-        }
 
         // https://github.com/burner1024/zabbix-sql/blob/master/delete-unused-data.sql
 
-	/*
 	The following SQL is more about data integrity than housekeeping.
         Useful in it's own right, but slow and time consuming and doesn't necessarily need doing as often as housekeeping.... Maybe move this to a seperate script and run it on a different schedule?
 
@@ -203,7 +122,6 @@ try {
         // Delete all orphaned acknowledge entries
         $queries[] = "DELETE FROM acknowledges WHERE eventid NOT IN (SELECT eventid FROM events);";
         $queries[] = "DELETE FROM acknowledges WHERE userid NOT IN (SELECT userid FROM users);";
-	*/
 
         $total_affected_rows = 0;
 
@@ -229,7 +147,7 @@ try {
 
 	$lines[] = sprintf("[%s] Total Row Deleted: %s", date('Y-m-d H:i:s'), $total_affected_rows);
 
-	file_put_contents('/tmp/zabbix-db-tidy--' . date('Y-m-d--His') . '.log', implode(PHP_EOL, $lines));
+	file_put_contents('/tmp/zabbix-data-integrity--' . date('Y-m-d--His') . '.log.bzip', bzcompress(implode(PHP_EOL, $lines)));
 
         $mail = new PHPMailer(true);
         try {
