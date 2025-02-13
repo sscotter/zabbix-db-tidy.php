@@ -1,3 +1,5 @@
 *.inc
 *.php.lock
 vendor/
+tmp/
+logs/
